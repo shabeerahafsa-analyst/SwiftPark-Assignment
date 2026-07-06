@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SwiftPark Prototype</title>
+<style>
+  :root{
+    --blue-deep:#1e4d8c;
+    --blue-mid:#2563a8;
+    --blue-bright:#2f6fc9;
+    --ink:#1a2233;
+    --ink-soft:#5b6472;
+    --line:#e7ebf1;
+    --bg:#eef1f5;
+    --card:#ffffff;
+    --green:#1f9d55;
+    --green-bg:#e6f7ec;
+    --amber:#b8860b;
+    --amber-bg:#fdf3d9;
+    --red:#c0392b;
+    --red-bg:#fbe9e7;
+    --dark-bg:#0d1424;
+    --dark-card:#141d33;
+    --purple-banner:#5b3fae;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px;
+    gap:28px;
+    flex-wrap:wrap;
+  }
+  .phone-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .phone-label{font-size:12px;font-weight:600;color:var(--ink-soft);letter-spacing:.04em;text-transform:uppercase;}
+  .phone{
+    width:320px;height:660px;
+    background:#fff;
+    border-radius:36px;
+    border:9px solid #14161b;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    overflow:hidden;
+    position:relative;
+  }
+  .phone.dark-shell{background:var(--dark-bg);}
+  .screen{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;
+    position:relative;
+    overflow:hidden;
+  }
+  .statusbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 18px 4px;
+    font-size:12px;font-weight:600;
+    color:#fff;
+  }
+  .statusbar.on-blue{background:var(--blue-deep);}
+  .statusbar.on-white{background:#fff;color:var(--ink);}
+  .statusbar.on-dark{background:var(--dark-bg);color:#fff;}
+  .topbar{
+    background:var(--blue-deep);
+    color:#fff;
+    padding:6px 18px 16px;
+  }
+  .topbar .title{font-size:20px;font-weight:700;}
+  .topbar .sub{font-size:12px;opacity:.85;margin-top:2px;}
+  .topbar-row{display:flex;align-items:center;gap:10px;}
+  .back-arrow{font-size:18px;cursor:pointer;user-select:none;}
+  .content{flex:1;overflow-y:auto;padding:14px 16px 90px;background:var(--bg);}
+  .content.white{background:#fff;}
+
+  /* HOME */
+  .location-block{padding:2px 0 10px;color:#fff;}
+  .location-label{font-size:11px;opacity:.8;}
+  .location-name{font-size:18px;font-weight:700;}
+  .search-box{
+    background:#fff;border-radius:10px;padding:10px 14px;
+    display:flex;align-items:center;gap:8px;color:#8b94a3;font-size:14px;
+    margin-top:8px;
+  }
+  .use-location-btn{
+    width:100%;background:#fff;border:1px solid var(--blue-bright);color:var(--blue-bright);
+    border-radius:10px;padding:12px;font-weight:600;font-size:14px;margin:14px 0 10px;
+    cursor:pointer;
+  }
+  .section-label{font-size:11px;color:var(--ink-soft);letter-spacing:.06em;font-weight:700;margin:10px 2px;}
+  .zone-card{
+    background:var(--card);border-radius:12px;padding:14px;margin-bottom:10px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;border:1px solid var(--line);
+  }
+  .zone-card:hover{border-color:var(--blue-bright);}
+  .zone-top{display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--ink);}
+  .zone-meta{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .zone-bar-track{height:5px;background:var(--line);border-radius:3px;margin-top:8px;overflow:hidden;}
+  .zone-bar-fill{height:100%;border-radius:3px;}
+  .zone-avail{font-size:11px;color:var(--ink-soft);margin-top:6px;}
+
+  .bottom-nav{
+    position:absolute;bottom:0;left:0;right:0;
+    background:#fff;border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;padding:10px 0 14px;
+  }
+  .nav-item{display:flex;flex-direction:column;align-items:center;font-size:11px;color:#9aa3b0;cursor:pointer;gap:2px;}
+  .nav-item.active{color:var(--blue-deep);font-weight:700;}
+  .nav-icon{font-size:18px;}
+
+  /* SPOT GRID */
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--ink-soft);margin-bottom:12px;align-items:center;}
+  .legend-dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;}
+  .grid-wrap{background:var(--card);border-radius:12px;padding:14px;margin-bottom:16px;}
+  .grid-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .row-label{width:14px;font-size:11px;color:#9aa3b0;}
+  .spot-box{
+    flex:1;aspect-ratio:1;border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:#7a3b34;
+    cursor:pointer;user-select:none;
+    background:#f6b8b0;
+    transition:transform .1s ease;
+  }
+  .spot-box.available{background:#8fd9a8;color:#1c5c33;}
+  .spot-box.selected{background:var(--blue-deep);color:#fff;}
+  .spot-box.disabled{cursor:not-allowed;opacity:.55;}
+  .spot-box:active{transform:scale(.94);}
+  .avail-list-item{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:8px;cursor:pointer;
+  }
+  .avail-list-item.selected{border-color:var(--blue-deep);border-width:2px;}
+  .spot-chip{
+    width:32px;height:32px;border-radius:8px;background:#eaf0fb;color:var(--blue-deep);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;margin-right:10px;
+  }
+  .avail-name{font-weight:600;font-size:14px;color:var(--ink);}
+  .avail-sub{font-size:11px;color:var(--ink-soft);}
+  .avail-price{font-weight:700;color:var(--blue-deep);font-size:14px;}
+  .row-flex{display:flex;align-items:center;}
+
+  .primary-btn{
+    width:100%;background:var(--blue-deep);color:#fff;border:none;border-radius:10px;
+    padding:14px;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  .primary-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .outline-btn{
+    width:100%;background:#fff;color:var(--blue-deep);border:1.5px solid var(--blue-deep);border-radius:10px;
+    padding:14px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;
+  }
+  .fixed-bottom{position:absolute;bottom:0;left:0;right:0;padding:14px 16px 18px;background:#fff;border-top:1px solid var(--line);}
+
+  /* SPOT DETAILS */
+  .detail-card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid var(--line);}
+  .detail-head{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+  .detail-badge{width:44px;height:44px;border-radius:10px;background:var(--blue-deep);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  .detail-title{font-weight:700;font-size:15px;color:var(--ink);}
+  .detail-sub{font-size:12px;color:var(--ink-soft);}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .info-box{background:#eef2f8;border-radius:8px;padding:10px 12px;}
+  .info-label{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.03em;}
+  .info-val{font-size:14px;font-weight:700;color:var(--blue-deep);margin-top:2px;}
+  .duration-pills{display:flex;gap:8px;margin:12px 0;}
+  .pill{flex:1;text-align:center;padding:10px 0;border-radius:8px;border:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;}
+  .pill.active{background:var(--blue-deep);color:#fff;border-color:var(--blue-deep);}
+  .total-row{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--line);margin-top:4px;}
+
+  /* PAYMENT */
+  .summary-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;}
+  .summary-title{font-size:10px;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;margin-bottom:10px;}
+  .summary-row{display:flex;justify-content:space-between;font-size:13px;color:var(--ink);padding:5px 0;}
+  .summary-row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:10px;font-weight:700;font-size:15px;}
+  .pay-option{
+    display:flex;justify-content:space-between;align-items:center;
+    border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;margin-bottom:10px;cursor:pointer;
+  }
+  .pay-option.selected{border-color:var(--blue-deep);}
+  .pay-name{font-weight:600;font-size:14px;color:var(--ink);}
+  .pay-sub{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);}
+  .radio.on{border-color:var(--blue-deep);position:relative;}
+  .radio.on::after{content:"";position:absolute;inset:3px;background:var(--blue-deep);border-radius:50%;}
+
+  /* CONFIRMED */
+  .center-col{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:10px;}
+  .check-circle{width:64px;height:64px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--green);margin-bottom:12px;}
+  .conf-title{font-size:19px;font-weight:700;color:var(--ink);}
+  .conf-sub{font-size:13px;color:var(--ink-soft);margin-top:2px;margin-bottom:16px;}
+  .id-strip{background:var(--blue-deep);color:#fff;border-radius:10px 10px 0 0;padding:12px 16px;display:flex;justify-content:space-between;font-size:11px;width:100%;}
+  .id-strip b{display:block;font-size:15px;margin-top:2px;}
+  .conf-body{background:#fff;border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:14px 16px;width:100%;margin-bottom:14px;}
+  .conf-row{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:var(--ink);}
+  .conf-row span:first-child{color:var(--ink-soft);}
+  .policy-card{
+    width:100%;background:var(--amber-bg);border:1px solid #f1d896;border-radius:10px;
+    padding:12px 14px;font-size:12px;color:#6b5209;margin-bottom:16px;text-align:left;line-height:1.5;
+  }
+  .policy-card b{display:block;font-size:12.5px;margin-bottom:3px;color:#5c4600;}
+  .qr-box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;width:100%;text-align:center;margin-bottom:16px;}
+
+  /* BOOKINGS LIST */
+  .booking-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;position:relative;}
+  .booking-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .booking-name{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .booking-sub{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .status-tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .status-tag.active{background:var(--green-bg);color:var(--green);}
+  .status-tag.expired{background:var(--red-bg);color:var(--red);}
+  .grace-block{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+  .grace-label{font-size:11px;color:var(--ink-soft);margin-bottom:4px;}
+  .countdown{font-size:20px;font-weight:800;color:var(--blue-deep);letter-spacing:.02em;}
+  .countdown.danger{color:var(--red);}
+  .sim-btn{
+    margin-top:12px;width:100%;background:#fff;border:1.5px dashed #c7cede;color:var(--ink-soft);
+    border-radius:8px;padding:9px;font-size:11.5px;font-weight:600;cursor:pointer;
+  }
+  .sim-tag{position:absolute;top:-8px;right:10px;background:var(--ink);color:#fff;font-size:9px;padding:2px 7px;border-radius:6px;letter-spacing:.03em;}
+
+  /* EXPIRED SCREEN */
+  .expired-icon{width:64px;height:64px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;font-size:28px;color:var(--red);margin-bottom:12px;}
+
+  /* WARDEN styles */
+  .warden-splash{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px;background:#fff;text-align:center;}
+  .warden-logo{width:50px;height:50px;border-radius:12px;background:var(--blue-deep);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;margin-bottom:10px;}
+  .warden-brand{font-weight:800;font-size:17px;color:var(--ink);}
+  .warden-brand span{display:block;font-size:10px;letter-spacing:.12em;color:var(--blue-deep);font-weight:700;}
+  .badge-circle{width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #3a6fc4, var(--blue-deep));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:22px 0 14px;}
+  .badge-circle small{font-size:8px;opacity:.75;letter-spacing:.1em;}
+  .badge-circle b{font-size:15px;}
+  .warden-name{font-size:17px;font-weight:700;color:var(--ink);}
+  .warden-zone{font-size:13px;color:var(--blue-mid);margin-top:2px;margin-bottom:16px;}
+  .shift-card{width:100%;background:#f3f5f8;border-radius:10px;padding:4px 14px;}
+  .shift-row{display:flex;justify-content:space-between;font-size:12.5px;padding:9px 0;color:var(--ink);border-bottom:1px solid #e3e7ee;}
+  .shift-row:last-child{border-bottom:none;}
+  .shift-row span:first-child{color:var(--ink-soft);}
+
+  .offline-banner{background:var(--purple-banner);color:#fff;font-size:11.5px;padding:8px 16px;display:flex;align-items:center;gap:6px;}
+  .offline-dot{width:6px;height:6px;border-radius:50%;background:#fff;}
+  .warden-topbar{background:var(--blue-deep);color:#fff;padding:12px 16px 14px;}
+  .wt-eyebrow{font-size:10px;letter-spacing:.08em;opacity:.75;}
+  .wt-title{font-size:19px;font-weight:800;margin:2px 0 4px;}
+  .wt-meta{font-size:12px;display:flex;gap:10px;}
+  .wt-meta b{font-weight:700;}
+  .shift-timer{position:absolute;top:12px;right:16px;font-size:11px;text-align:right;opacity:.9;}
+
+  .booking-row-w{
+    background:#fff;border-radius:10px;padding:11px 13px;margin-bottom:8px;
+    display:flex;align-items:center;justify-content:space-between;border-left:4px solid var(--green);
+    cursor:pointer;
+  }
+  .booking-row-w.unverified{border-left-color:var(--amber);}
+  .booking-row-w.flagged{border-left-color:var(--red);background:#fff5f4;}
+  .booking-row-w.released{border-left-color:#9aa3b0;background:#f4f5f7;}
+  .w-left{display:flex;align-items:center;gap:10px;}
+  .w-chip{width:34px;height:34px;border-radius:8px;background:#eaf0fb;color:var(--blue-deep);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;}
+  .w-chip.flagged{background:#fde0dc;color:var(--red);}
+  .w-chip.released{background:#e6e8ec;color:#7b8291;}
+  .w-name{font-size:13.5px;font-weight:700;color:var(--ink);}
+  .w-sub{font-size:11px;color:var(--ink-soft);}
+  .w-right{text-align:right;}
+  .w-status{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+  .w-status.active{background:var(--green-bg);color:var(--green);}
+  .w-status.unverified{background:var(--amber-bg);color:var(--amber);}
+  .w-status.flagged{background:#fde0dc;color:var(--red);}
+  .w-status.released{background:#e6e8ec;color:#6b7280;}
+  .w-price{font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+  .new-tag{background:var(--blue-deep);color:#fff;font-size:8.5px;padding:1px 6px;border-radius:5px;letter-spacing:.03em;margin-left:6px;}
+
+  .warden-detail-top{background:var(--blue-deep);color:#fff;padding:10px 16px 14px;}
+  .w-detail-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px;}
+  .w-detail-label{font-size:10px;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;margin-bottom:8px;}
+  .w-detail-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--ink);}
+  .w-detail-row span:first-child{color:var(--ink-soft);}
+  .confirm-btn-green{width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;font-weight:700;font-size:14.5px;cursor:pointer;margin-bottom:10px;}
+  .flag-btn-outline{width:100%;background:#fff;color:var(--red);border:1.5px solid var(--red);border-radius:10px;padding:14px;font-weight:700;font-size:14.5px;cursor:pointer;}
+
+  .instant-save{
+    position:fixed;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;font-size:12px;padding:10px 16px;border-radius:10px;
+    display:flex;align-items:center;gap:8px;box-shadow:0 6px 16px rgba(0,0,0,.25);
+    animation:popfade 1.4s ease forwards;
+    z-index:50;
+  }
+  @keyframes popfade{
+    0%{opacity:0;bottom:20px;}
+    15%{opacity:1;bottom:36px;}
+    80%{opacity:1;bottom:36px;}
+    100%{opacity:0;bottom:20px;}
+  }
+
+  .logged-card{background:#f7f8fa;border-radius:10px;padding:12px 14px;margin-bottom:14px;}
+  .logged-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;}
+  .logged-row span:first-child{color:var(--ink-soft);}
+  .sync-note{background:var(--amber-bg);border:1px solid #f1d896;border-radius:10px;padding:11px 13px;font-size:11.5px;color:#6b5209;margin-bottom:16px;display:flex;gap:8px;}
+
+  .annot{
+    position:absolute;top:-10px;left:-10px;background:var(--green);color:#fff;
+    font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;z-index:5;
+  }
+  .callout-note{
+    font-size:11px;color:var(--ink-soft);background:#fff;border:1px dashed #c7cede;
+    border-radius:8px;padding:8px 10px;margin-top:8px;line-height:1.4;
+  }
+
+  .toolbar{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+  .toolbar button{
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:11.5px;
+    cursor:pointer;color:var(--ink);
+  }
+  .toolbar button:hover{border-color:var(--blue-bright);color:var(--blue-deep);}
+</style>
+</head>
+<body>
+
+<div class="phone-wrap">
+  <div class="phone-label">Driver App</div>
+  <div class="phone"><div class="screen" id="driverScreen"></div></div>
+  <div class="toolbar">
+    <button onclick="driverGoto('home')">Home</button>
+    <button onclick="resetDriver()">Reset flow</button>
+  </div>
+</div>
+
+<div class="phone-wrap">
+  <div class="phone-label">Warden App</div>
+  <div class="phone dark-shell"><div class="screen" id="wardenScreen"></div></div>
+  <div class="toolbar">
+    <button onclick="wardenGoto('splash')">Home</button>
+    <button onclick="resetWarden()">Reset flow</button>
+  </div>
+</div>
+
+<script>
+/* ============ SHARED STATE ============ */
+let driverState = { screen:'home', spot:'D1', duration:1, graceSeconds: 6, expired:false };
+let wardenState = { screen:'splash', logged:false, spotReleased:false };
+let countdownTimer=null;
+
+function fmtTime(sec){
+  const m=Math.floor(sec/60).toString().padStart(2,'0');
+  const s=(sec%60).toString().padStart(2,'0');
+  return m+':'+s;
+}
+
+/* ============ DRIVER APP ============ */
+function driverGoto(screen){ driverState.screen=screen; renderDriver(); }
+function resetDriver(){ driverState = { screen:'home', spot:'D1', duration:1, graceSeconds:6, expired:false }; renderDriver(); }
+
+function renderDriver(){
+  const el = document.getElementById('driverScreen');
+  const s = driverState;
+
+  if(s.screen==='home'){
+    el.innerHTML = `
+      <div class="statusbar on-white"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="topbar">
+        <div class="location-block">
+          <div class="location-label">Location</div>
+          <div class="location-name">Bangalore City</div>
+        </div>
+        <div class="search-box">🔍 Search zones...</div>
+      </div>
+      <div class="content">
+        <button class="use-location-btn">Use Current Location</button>
+        <div class="section-label">NEARBY ZONES</div>
+        ${zoneCard('Zone 1 - MG Road','0.3 km away · ₹35/hr',18,24,'#1f9d55')}
+        ${zoneCard('Zone 2 - Brigade Road','0.8 km away · ₹40/hr',4,24,'#b8860b','goto("driver","zoneGrid")')}
+        ${zoneCard('Zone 3 - Indiranagar','1.2 km away · ₹35/hr',11,24,'#1f9d55')}
+        ${zoneCard('Zone 4 - Koramangala','2.1 km away · ₹45/hr',0,24,'#c0392b')}
+        ${zoneCard('Zone 5 - Whitefield','4.5 km away · ₹30/hr',15,24,'#1f9d55')}
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item active"><div class="nav-icon">🏠</div>Home</div>
+        <div class="nav-item" onclick="driverGoto('bookings')"><div class="nav-icon">🎫</div>Bookings</div>
+        <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='zoneGrid'){
+    // spot grid — 4 of 24 available, matching reference. Available: A5, B4(selected default no), D1, D6
+    const spots = {
+      A:['occupied','occupied','occupied','occupied','available','occupied'],
+      B:['occupied','occupied','occupied','available','occupied','occupied'],
+      C:['occupied','occupied','occupied','occupied','occupied','occupied'],
+      D:[s.spot==='D1'?'selected':'available','occupied','occupied','occupied','occupied','available']
+    };
+    let gridHtml='';
+    for(const row of ['A','B','C','D']){
+      gridHtml+=`<div class="grid-row"><div class="row-label">${row}</div>`;
+      spots[row].forEach((state,i)=>{
+        const id = row+(i+1);
+        const cls = state==='available' ? 'available' : state==='selected' ? 'selected':'';
+        gridHtml+=`<div class="spot-box ${cls}" onclick="selectSpot('${id}','${state}')">${id}</div>`;
+      });
+      gridHtml+='</div>';
+    }
+
+    const available = [
+      {id:'A5',label:'Spot A5'},
+      {id:'B4',label:'Spot B4'},
+      {id:'D1',label:'Spot D1'},
+      {id:'D6',label:'Spot D6'}
+    ];
+    let listHtml='';
+    available.forEach(a=>{
+      const sel = a.id===s.spot ? 'selected':'';
+      listHtml+=`<div class="avail-list-item ${sel}" onclick="selectSpot('${a.id}','available')">
+        <div class="row-flex"><div class="spot-chip">${a.id}</div>
+          <div><div class="avail-name">${a.label}</div><div class="avail-sub">Open Air</div></div>
+        </div>
+        <div class="avail-price">₹40/hr</div>
+      </div>`;
+    });
+
+    el.innerHTML = `
+      <div class="statusbar on-blue"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="topbar">
+        <div class="topbar-row"><span class="back-arrow" onclick="driverGoto('home')">←</span>
+          <div><div class="title" style="font-size:16px">Zone 2 - Brigade Road</div>
+          <div class="sub">4 of 24 available</div></div>
+        </div>
+      </div>
+      <div class="content white" style="padding-bottom:100px">
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#8fd9a8"></span>Available</span>
+          <span><span class="legend-dot" style="background:#f6b8b0"></span>Occupied</span>
+          <span><span class="legend-dot" style="background:var(--blue-deep)"></span>Selected</span>
+        </div>
+        <div class="grid-wrap">${gridHtml}</div>
+        <div class="section-label">AVAILABLE SPOTS · TAP TO CHOOSE</div>
+        ${listHtml}
+      </div>
+      <div class="fixed-bottom">
+        <button class="primary-btn" onclick="driverGoto('spotDetails')">Continue with Spot ${s.spot} →</button>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='spotDetails'){
+    const rate=40;
+    const total = rate*s.duration;
+    el.innerHTML = `
+      <div class="statusbar on-blue"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="topbar">
+        <div class="topbar-row"><span class="back-arrow" onclick="driverGoto('zoneGrid')">←</span>
+          <div class="title" style="font-size:16px">Spot Details</div>
+        </div>
+      </div>
+      <div class="content white">
+        <div class="detail-card">
+          <div class="detail-head">
+            <div class="detail-badge">${s.spot}</div>
+            <div><div class="detail-title">Spot ${s.spot}</div><div class="detail-sub">Zone 2 - Brigade Road</div></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-box"><div class="info-label">Price/hour</div><div class="info-val">₹40</div></div>
+            <div class="info-box"><div class="info-label">Walk distance</div><div class="info-val">~2 min</div></div>
+            <div class="info-box"><div class="info-label">Spot type</div><div class="info-val" style="color:var(--ink)">Open Air</div></div>
+            <div class="info-box"><div class="info-label">Zone</div><div class="info-val" style="color:var(--ink)">Brigade Rd</div></div>
+          </div>
+        </div>
+        <div class="detail-card">
+          <div style="font-weight:700;font-size:13px;margin-bottom:10px;">Select Duration</div>
+          <div class="duration-pills">
+            ${[1,2,3,4].map(d=>`<div class="pill ${s.duration===d?'active':''}" onclick="setDuration(${d})">${d===4?'4hr+':d+'hr'}</div>`).join('')}
+          </div>
+          <div class="total-row"><span style="color:var(--ink-soft);font-size:13px">Total Amount</span><b style="color:var(--blue-deep);font-size:17px">₹${total}</b></div>
+        </div>
+      </div>
+      <div class="fixed-bottom">
+        <button class="primary-btn" onclick="driverGoto('payment')">Book This Spot</button>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='payment'){
+    const total = 40*s.duration;
+    el.innerHTML = `
+      <div class="statusbar on-blue"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="topbar">
+        <div class="topbar-row"><span class="back-arrow" onclick="driverGoto('spotDetails')">←</span>
+          <div class="title" style="font-size:16px">Payment</div>
+        </div>
+      </div>
+      <div class="content white">
+        <div class="summary-card">
+          <div class="summary-title">BOOKING SUMMARY</div>
+          <div class="summary-row"><span>Zone</span><span>Zone 2 - Brigade Road</span></div>
+          <div class="summary-row"><span>Spot</span><span>Spot ${s.spot}</span></div>
+          <div class="summary-row"><span>Duration</span><span>${s.duration} hour${s.duration>1?'s':''}</span></div>
+          <div class="summary-row"><span>Rate</span><span>₹40/hr</span></div>
+          <div class="summary-row total"><span>Total</span><span style="color:var(--blue-deep)">₹${total}</span></div>
+        </div>
+        <div class="section-label" style="margin-left:0">PAY WITH</div>
+        <div class="pay-option selected"><div><div class="pay-name">UPI</div><div class="pay-sub">PhonePe, GPay, Paytm</div></div><div class="radio on"></div></div>
+        <div class="pay-option"><div><div class="pay-name">Credit / Debit Card</div><div class="pay-sub">Visa, Mastercard, Rupay</div></div><div class="radio"></div></div>
+        <div class="pay-option"><div><div class="pay-name">Wallet</div><div class="pay-sub">SwiftPark Balance: ₹0</div></div><div class="radio"></div></div>
+      </div>
+      <div class="fixed-bottom">
+        <button class="primary-btn" onclick="confirmBooking()">Confirm & Pay ₹${total}</button>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='confirmed'){
+    const total = 40*s.duration;
+    el.innerHTML = `
+      <div class="statusbar on-white"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="content white" style="padding-top:20px">
+        <div class="center-col">
+          <div class="check-circle">✓</div>
+          <div class="conf-title">Booking Confirmed!</div>
+          <div class="conf-sub">Your spot is reserved and ready</div>
+          <div class="id-strip"><div>BOOKING ID<b>SP13115</b></div><div style="text-align:right">Date<b>7/6/2026</b></div></div>
+          <div class="conf-body">
+            <div class="conf-row"><span>Zone</span><span>Zone 2 - Brigade Road</span></div>
+            <div class="conf-row"><span>Spot</span><span>Spot ${s.spot}</span></div>
+            <div class="conf-row"><span>Start Time</span><span>08:23 AM</span></div>
+            <div class="conf-row"><span>Duration</span><span>${s.duration} hour${s.duration>1?'s':''}</span></div>
+            <div class="conf-row"><span>Amount Paid</span><span>₹${total}</span></div>
+          </div>
+          <div class="policy-card" style="position:relative">
+            <span class="annot">NEW</span>
+            <b>Reservation Policy</b>
+            Your spot is reserved for a 15-minute grace period after your start time. If you haven't arrived by then, it will be automatically released.
+          </div>
+        </div>
+      </div>
+      <div class="fixed-bottom">
+        <button class="primary-btn" onclick="driverGoto('zoneGrid')">Book Another Spot</button>
+        <button class="outline-btn" onclick="startBookingsView()">View My Bookings</button>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='bookings'){
+    renderBookingsScreen(el);
+    return;
+  }
+
+  if(s.screen==='expired'){
+    el.innerHTML = `
+      <div class="statusbar on-white"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="content white" style="padding-top:24px">
+        <div class="center-col">
+          <div class="expired-icon">✕</div>
+          <div class="conf-title" style="color:var(--red)">Reservation Expired</div>
+          <div class="conf-sub" style="max-width:220px">You didn't arrive within the grace period. Your reservation was automatically released.</div>
+          <div class="conf-body" style="margin-top:6px">
+            <div class="conf-row"><span>Spot</span><span>Spot ${s.spot}</span></div>
+            <div class="conf-row"><span>Status</span><span style="color:var(--red);font-weight:700">Released</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fixed-bottom">
+        <button class="primary-btn" onclick="resetDriver()">Find Parking</button>
+      </div>`;
+    return;
+  }
+}
+
+function zoneCard(name,meta,free,total,color,onclick){
+  const pct = Math.round((free/total)*100);
+  const label = free===0?'Full':free+' free';
+  return `<div class="zone-card" ${onclick?`onclick="${onclick.replace('goto("driver","zoneGrid")','driverGoto(\'zoneGrid\')')}"`:''}>
+    <div class="zone-top"><span>${name}</span><span style="color:${color}">${label}</span></div>
+    <div class="zone-meta">${meta}</div>
+    <div class="zone-bar-track"><div class="zone-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div class="zone-avail">${free} of ${total} spots available</div>
+  </div>`;
+}
+
+function selectSpot(id,state){
+  if(state==='occupied') return;
+  driverState.spot=id;
+  renderDriver();
+}
+function setDuration(d){ driverState.duration=d; renderDriver(); }
+
+function confirmBooking(){
+  driverState.screen='confirmed';
+  renderDriver();
+}
+
+function startBookingsView(){
+  driverState.screen='bookings';
+  driverState.expired=false;
+  driverState.graceSeconds=6; // compressed grace period for demo purposes
+  renderDriver();
+  startCountdown();
+}
+
+function startCountdown(){
+  clearInterval(countdownTimer);
+  countdownTimer = setInterval(()=>{
+    if(driverState.screen!=='bookings' || driverState.expired){ clearInterval(countdownTimer); return; }
+    driverState.graceSeconds--;
+    if(driverState.graceSeconds<=0){
+      clearInterval(countdownTimer);
+      driverState.expired=true;
+      wardenState.spotReleased=true; // ripple into warden app
+      renderDriver();
+      if(wardenState.screen==='activeBookings') renderWarden();
+      return;
+    }
+    renderBookingsScreen(document.getElementById('driverScreen'));
+  },1000);
+}
+
+function simulateNoShow(){
+  clearInterval(countdownTimer);
+  driverState.expired=true;
+  wardenState.spotReleased=true;
+  driverState.screen='expired';
+  renderDriver();
+  if(wardenState.screen==='activeBookings') renderWarden();
+}
+
+function renderBookingsScreen(el){
+  const s=driverState;
+  if(s.expired){
+    el.innerHTML = `
+      <div class="statusbar on-blue"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="topbar"><div class="title" style="font-size:19px">My Bookings</div></div>
+      <div class="content">
+        <div class="booking-card">
+          <div class="booking-top">
+            <div><div class="booking-name">Zone 2 - Brigade Road</div><div class="booking-sub">Spot ${s.spot} · ${s.duration}hr · 08:23 AM</div></div>
+            <span class="status-tag expired">Expired</span>
+          </div>
+          <div class="grace-block">
+            <div class="grace-label">Reservation released — spot returned to available inventory</div>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="nav-item" onclick="driverGoto('home')"><div class="nav-icon">🏠</div>Home</div>
+        <div class="nav-item active"><div class="nav-icon">🎫</div>Bookings</div>
+        <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+      </div>`;
+    return;
+  }
+  const danger = driverState.graceSeconds<=3;
+  el.innerHTML = `
+    <div class="statusbar on-blue"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+    <div class="topbar"><div class="title" style="font-size:19px">My Bookings</div></div>
+    <div class="content">
+      <div class="booking-card">
+        <span class="annot" style="background:var(--blue-deep)">NEW</span>
+        <div class="booking-top">
+          <div><div class="booking-name">Zone 2 - Brigade Road</div><div class="booking-sub">Spot ${driverState.spot} · ${driverState.duration}hr · 08:23 AM</div></div>
+          <span class="status-tag active">Active</span>
+        </div>
+        <div class="grace-block">
+          <div class="grace-label">Grace period remaining — arrive before it ends</div>
+          <div class="countdown ${danger?'danger':''}">${fmtTime(driverState.graceSeconds)}</div>
+        </div>
+        <button class="sim-btn" onclick="simulateNoShow()">Simulate No-show (prototype only)</button>
+      </div>
+      <div class="callout-note">Compressed to seconds for demo. In production this window is 15 minutes and starts at booking time — no GPS or ETA tracking involved.</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="driverGoto('home')"><div class="nav-icon">🏠</div>Home</div>
+      <div class="nav-item active"><div class="nav-icon">🎫</div>Bookings</div>
+      <div class="nav-item"><div class="nav-icon">👤</div>Profile</div>
+    </div>`;
+}
+
+renderDriver();
+
+/* ============ WARDEN APP ============ */
+function wardenGoto(screen){ wardenState.screen=screen; renderWarden(); }
+function resetWarden(){ wardenState = { screen:'splash', logged:false, spotReleased:false }; renderWarden(); }
+
+function renderWarden(){
+  const el = document.getElementById('wardenScreen');
+  const s = wardenState;
+
+  if(s.screen==='splash'){
+    el.innerHTML = `
+      <div class="statusbar on-white"><span>08:39 am</span><span>▮▮▮ WD-042</span></div>
+      <div class="warden-splash">
+        <div class="warden-logo">P</div>
+        <div class="warden-brand">SwiftPark<span>ENFORCEMENT</span></div>
+        <div class="badge-circle"><small>BADGE</small><b>WD-042</b></div>
+        <div class="warden-name">Warden Ravi Kumar</div>
+        <div class="warden-zone">Zone 3 — Indiranagar</div>
+        <div class="shift-card">
+          <div class="shift-row"><span>Date</span><span>Monday, 6 July 2026</span></div>
+          <div class="shift-row"><span>Shift</span><span>08:00 — 16:00</span></div>
+          <div class="shift-row"><span>Badge No.</span><span>WD-042</span></div>
+          <div class="shift-row"><span>Zone</span><span>Zone 3, Indiranagar</span></div>
+        </div>
+        <button class="primary-btn" style="margin-top:20px" onclick="wardenGoto('activeBookings')">Start Shift</button>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='activeBookings'){
+    const bookings = [
+      {id:'A-01',name:'Priya Sharma',meta:'09:00 · 2 hrs',price:'₹80',status:'active'},
+      {id:'A-02',name:'Rahul Mehta',meta:'09:30 · 1 hr',price:'₹40',status:'unverified'},
+      {id:'A-03',name:'Deepak Nair',meta:'08:45 · 3 hrs',price:'₹120',status:'flagged'},
+      {id:'A-04',name:'Ananya Iyer',meta:'10:00 · 1 hr',price:'₹40',status: s.spotReleased ? 'released' : 'active', detail:true},
+      {id:'B-01',name:'Suresh Pillai',meta:'09:15 · 2 hrs',price:'₹80',status:'active'},
+      {id:'B-02',name:'Kavitha Reddy',meta:'08:30 · 4 hrs',price:'₹160',status:'unverified'},
+      {id:'B-03',name:'Arjun Singh',meta:'10:30 · 1 hr',price:'₹40',status:'active'},
+    ];
+    const statusLabel = {active:'Active',unverified:'Unverified',flagged:'Flagged',released:'Available'};
+    let rows='';
+    bookings.forEach(b=>{
+      const clickable = b.detail ? `onclick="wardenGoto('spotDetail')"` : '';
+      const relTag = (b.status==='released') ? `<span class="new-tag">AUTO-RELEASED</span>` : '';
+      rows+=`<div class="booking-row-w ${b.status}" ${clickable}>
+        <div class="w-left"><div class="w-chip ${b.status==='flagged'?'flagged':b.status==='released'?'released':''}">${b.id}</div>
+          <div><div class="w-name">${b.status==='released'?'Spot '+b.id:b.name}</div><div class="w-sub">${b.status==='released'?'Reservation automatically released':b.meta}</div></div>
+        </div>
+        <div class="w-right"><span class="w-status ${b.status}">${statusLabel[b.status]}</span>${relTag}<div class="w-price">${b.status==='released'?'':b.price}</div></div>
+      </div>`;
+    });
+    el.innerHTML = `
+      <div class="statusbar on-dark"><span>08:39 am</span><span>▮▮▮ WD-042</span></div>
+      <div class="offline-banner"><span class="offline-dot"></span>No network detected — actions will sync when online</div>
+      <div class="warden-topbar" style="position:relative">
+        <div class="wt-eyebrow">ZONE 3 — INDIRANAGAR</div>
+        <div class="wt-title">Active Bookings</div>
+        <div class="wt-meta"><span><b>4</b> active</span><span style="color:#ffb4a8"><b>2</b> flagged</span><span>8 total</span></div>
+        <div class="shift-timer">SHIFT<br><b>00:00:02</b></div>
+      </div>
+      <div class="content" style="background:var(--dark-bg);padding-bottom:80px">
+        ${rows}
+        ${s.spotReleased?`<div class="callout-note" style="background:#1b2540;border-color:#31406b;color:#a9b4c9">Spot A-04 updated automatically — no warden action required. This reflects the auto no-show release from the driver side.</div>`:''}
+      </div>
+      <div class="bottom-nav" style="background:var(--dark-card);border-top:1px solid #24304d">
+        <div class="nav-item active" style="color:#7fa8e8">☰<br>Active Bookings</div>
+        <div class="nav-item" style="color:#7b8291">▤<br>Logged Actions</div>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='spotDetail'){
+    el.innerHTML = `
+      <div class="statusbar on-dark"><span>08:39 am</span><span>▮▮▮ WD-042</span></div>
+      <div class="warden-detail-top">
+        <div class="topbar-row" style="justify-content:space-between">
+          <div class="topbar-row"><span class="back-arrow" onclick="wardenGoto('activeBookings')">←</span>
+            <div><div class="wt-eyebrow">SPOT DETAIL</div><div class="wt-title" style="font-size:18px">Spot A-04</div></div>
+          </div>
+          <span class="status-tag active" style="background:rgba(255,255,255,.15);color:#fff">Active</span>
+        </div>
+      </div>
+      <div class="content" style="background:var(--dark-bg)">
+        <div class="w-detail-card">
+          <div class="w-detail-label">DRIVER INFORMATION</div>
+          <div class="w-detail-row"><span>Name</span><span>Ananya Iyer</span></div>
+          <div class="w-detail-row"><span>Vehicle No.</span><b>KA-03-GH-3456</b></div>
+        </div>
+        <div class="w-detail-card">
+          <div class="w-detail-label">BOOKING DETAILS</div>
+          <div class="w-detail-row"><span>Spot</span><span>Spot A-04</span></div>
+          <div class="w-detail-row"><span>Zone</span><span>Zone 3 — Indiranagar</span></div>
+          <div class="w-detail-row"><span>Booked From</span><span>10:00</span></div>
+          <div class="w-detail-row"><span>Duration</span><span>1 hr</span></div>
+          <div class="w-detail-row"><span>Amount Paid</span><span style="color:var(--green);font-weight:700">₹40 — Paid</span></div>
+        </div>
+        <div class="w-detail-card" style="text-align:center">
+          <div class="w-detail-label">BOOKING QR CODE</div>
+          <div style="font-size:44px;letter-spacing:2px;padding:10px 0">▦▦▦▦</div>
+          <div style="font-size:11px;color:var(--ink-soft)">SP-A-04-GH3456</div>
+        </div>
+        <button class="confirm-btn-green" onclick="logAction()">✓ Confirm Valid Booking</button>
+        <button class="flag-btn-outline">! Flag Unauthorised Vehicle</button>
+      </div>`;
+    return;
+  }
+
+  if(s.screen==='actionLogged'){
+    el.innerHTML = `
+      <div class="statusbar on-dark"><span>08:40 am</span><span>▮▮▮ WD-042</span></div>
+      <div class="content" style="background:#fff;padding-top:24px">
+        <div class="center-col">
+          <div class="check-circle">✓</div>
+          <div class="conf-title" style="color:var(--ink)">Action Logged</div>
+          <div class="conf-sub">This booking has been confirmed as valid.</div>
+          <div class="logged-card" style="width:100%">
+            <div class="logged-row"><span>Action</span><span style="color:var(--green);font-weight:700">Booking Confirmed</span></div>
+            <div class="logged-row"><span>Spot</span><span>Spot A-04</span></div>
+            <div class="logged-row"><span>Driver</span><span>Ananya Iyer</span></div>
+            <div class="logged-row"><span>Vehicle</span><span>KA-03-GH-3456</span></div>
+            <div class="logged-row"><span>Timestamp</span><span>08:40:07 am</span></div>
+          </div>
+          <div class="sync-note">⚠️ <span><b>Sync Pending</b><br>This action will update the central system when connectivity is restored.</span></div>
+        </div>
+      </div>
+      <div class="fixed-bottom">
+        <button class="primary-btn" onclick="wardenGoto('activeBookings')">Back to Zone Overview</button>
+      </div>`;
+    return;
+  }
+}
+
+function logAction(){
+  // Instant local-save acknowledgment — appears before the full "Action Logged" screen renders
+  showInstantSaveToast();
+  setTimeout(()=>{
+    wardenState.screen='actionLogged';
+    renderWarden();
+  }, 550);
+}
+
+function showInstantSaveToast(){
+  const toast = document.createElement('div');
+  toast.className='instant-save';
+  toast.innerHTML = `<span>✓</span><span><b>Saved on device</b> · Spot A-04 · Will sync automatically</span>`;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.remove(),1500);
+}
+
+renderWarden();
+</script>
+</body>
+</html>
