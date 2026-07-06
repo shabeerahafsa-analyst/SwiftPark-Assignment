@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SwiftPark — Redesign Prototype (Feature #2 + #3)</title>
+<style>
+  :root{
+    --primary:#1a4b8c;
+    --primary-dark:#123a6b;
+    --bg-page:#eef1f5;
+    --card:#ffffff;
+    --text:#1c2430;
+    --text-muted:#6b7685;
+    --success-bg:#dcf5e8; --success-text:#1e9e6c;
+    --warning-bg:#fdf0dc; --warning-text:#b9720f;
+    --danger-bg:#fbe4e4; --danger-text:#c94040;
+    --info-bg:#e8effa; --info-text:#1a4b8c;
+    --border:#e3e7ee;
+    --radius:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg-page);
+    padding:32px 16px 60px;
+    color:var(--text);
+  }
+  .toplabel{
+    text-align:center;
+    max-width:1100px;
+    margin:0 auto 22px;
+  }
+  .toplabel h1{font-size:20px; margin:0 0 4px;}
+  .toplabel p{font-size:13px; color:var(--text-muted); margin:0;}
+
+  .switcher{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin:18px auto 30px;
+  }
+  .switcher button{
+    padding:10px 20px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--card);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--text-muted);
+    transition:all .15s ease;
+  }
+  .switcher button.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+  }
+
+  .stage{
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    flex-wrap:wrap;
+    max-width:1100px;
+    margin:0 auto;
+  }
+
+  .phone-wrap{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .phone-caption{ font-size:12px; color:var(--text-muted); font-weight:600; letter-spacing:.03em; text-transform:uppercase; }
+
+  .phone{
+    width:320px;
+    height:660px;
+    background:#0b1220;
+    border-radius:40px;
+    padding:10px;
+    box-shadow:0 20px 50px rgba(20,30,50,.25);
+  }
+  .screen{
+    width:100%;
+    height:100%;
+    background:var(--card);
+    border-radius:30px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+  .statusbar{
+    height:26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 18px;
+    font-size:11px;
+    font-weight:600;
+    background:var(--primary);
+    color:#fff;
+  }
+  .header{
+    background:var(--primary);
+    color:#fff;
+    padding:14px 18px 16px;
+    flex-shrink:0;
+  }
+  .header .title{font-size:17px; font-weight:700;}
+  .header .sub{font-size:12px; opacity:.85; margin-top:2px;}
+  .header .back{
+    font-size:13px; opacity:.9; cursor:pointer; margin-bottom:6px; display:inline-block;
+  }
+
+  .body{
+    flex:1;
+    overflow-y:auto;
+    padding:14px 16px 18px;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .row{ display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; }
+  .row .label{color:var(--text-muted);}
+  .row .value{font-weight:600;}
+
+  .btn{
+    display:block;
+    width:100%;
+    text-align:center;
+    padding:13px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:700;
+    border:none;
+    cursor:pointer;
+    margin-top:8px;
+  }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-outline{ background:#fff; color:var(--primary); border:1.5px solid var(--primary); }
+  .btn-danger-outline{ background:#fff; color:var(--danger-text); border:1.5px solid var(--danger-text); }
+  .btn-success{ background:#1e9e6c; color:#fff; }
+  .btn-ghost{ background:var(--info-bg); color:var(--primary); }
+
+  .pill{
+    font-size:11px;
+    font-weight:700;
+    padding:4px 10px;
+    border-radius:999px;
+    display:inline-block;
+  }
+  .pill-success{ background:var(--success-bg); color:var(--success-text); }
+  .pill-warning{ background:var(--warning-bg); color:var(--warning-text); }
+  .pill-danger{ background:var(--danger-bg); color:var(--danger-text); }
+  .pill-info{ background:var(--info-bg); color:var(--info-text); }
+
+  .banner{
+    font-size:12px;
+    font-weight:600;
+    padding:9px 14px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .banner-offline{ background:#5b3a9c; color:#fff; }
+  .banner-local{ background:var(--success-bg); color:var(--success-text); border-radius:10px; padding:10px 12px; margin-bottom:10px;}
+
+  .new-tag{
+    display:inline-block;
+    background:#1e9e6c;
+    color:#fff;
+    font-size:9.5px;
+    font-weight:800;
+    letter-spacing:.03em;
+    padding:2px 6px;
+    border-radius:5px;
+    margin-left:6px;
+    vertical-align:middle;
+  }
+
+  .timer{
+    font-size:26px;
+    font-weight:800;
+    color:var(--primary);
+    text-align:center;
+    letter-spacing:.02em;
+  }
+  .timer-label{ text-align:center; font-size:11.5px; color:var(--text-muted); margin-top:2px;}
+
+  .booking-item{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:11px 12px;
+    margin-bottom:9px;
+    font-size:12.5px;
+  }
+  .booking-item .top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;}
+  .booking-item .name{font-weight:700; font-size:13px;}
+  .booking-item .meta{color:var(--text-muted); font-size:11.5px;}
+
+  .footer-note{
+    font-size:11px;
+    color:var(--text-muted);
+    text-align:center;
+    margin-top:10px;
+    line-height:1.4;
+  }
+
+  .center-icon{
+    width:52px; height:52px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin:18px auto 12px;
+    font-size:26px;
+  }
+
+  .annotations{
+    max-width:320px;
+    margin-top:2px;
+  }
+  .annotations .note{
+    font-size:11px;
+    color:var(--text-muted);
+    background:#fff;
+    border:1px dashed var(--border);
+    border-radius:8px;
+    padding:6px 9px;
+    margin-top:6px;
+  }
+  .annotations .note b{ color:#1e9e6c; }
+</style>
+</head>
+<body>
+
+<div class="toplabel">
+  <h1>SwiftPark — Redesign Prototype</h1>
+  <p>Feature #2: Automated No-Show Release &nbsp;•&nbsp; Feature #3: Warden App Stability &amp; Offline Resilience</p>
+</div>
+
+<div class="switcher">
+  <button class="active" id="btn-driver" onclick="setApp('driver')">Driver App</button>
+  <button id="btn-warden" onclick="setApp('warden')">Warden App</button>
+</div>
+
+<div class="stage">
+  <div class="phone-wrap">
+    <div class="phone-caption" id="driver-caption">Driver App</div>
+    <div class="phone" id="driver-phone">
+      <div class="screen" id="driver-screen"></div>
+    </div>
+  </div>
+  <div class="phone-wrap" id="warden-wrap" style="display:none;">
+    <div class="phone-caption">Warden App</div>
+    <div class="phone" id="warden-phone">
+      <div class="screen" id="warden-screen"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Shared state (this is the point: driver + warden read the SAME reservation state) ---------- */
+const state = {
+  spotStatus: 'reserved', // reserved -> available (after no-show release)
+  graceSeconds: 15*60,
+  timerRunning: false,
+  timerInterval: null,
+  driverScreen: 'home',
+  wardenScreen: 'shiftStart',
+  wardenLocalSaved: false,
+  wardenSynced: false,
+  wardenOffline: true
+};
+
+function setApp(which){
+  document.getElementById('btn-driver').classList.toggle('active', which==='driver');
+  document.getElementById('btn-warden').classList.toggle('active', which==='warden');
+  document.getElementById('warden-wrap').style.display = which==='warden' ? 'flex' : 'none';
+  document.getElementById('driver-phone').parentElement.style.display = which==='driver' ? 'flex' : (which==='warden' ? 'none':'flex');
+  // On mobile-narrow layouts we just show one at a time; on wide screens both can show. Keep simple: toggle both, but always allow side-by-side on desktop by removing the driver hide.
+  document.getElementById('driver-phone').parentElement.style.display = 'flex';
+}
+
+function fmt(sec){
+  const m = Math.floor(sec/60).toString().padStart(2,'0');
+  const s = (sec%60).toString().padStart(2,'0');
+  return m+':'+s;
+}
+
+/* ---------------- DRIVER SCREENS ---------------- */
+function renderDriver(){
+  const el = document.getElementById('driver-screen');
+  const s = state.driverScreen;
+
+  if(s === 'home'){
+    el.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="header">
+        <div class="sub">Location</div>
+        <div class="title">Bangalore City</div>
+      </div>
+      <div class="body">
+        <div class="card" style="padding:10px 14px;">🔍 Search zones…</div>
+        <div class="footer-note" style="margin-bottom:8px; text-align:left;">NEARBY ZONES</div>
+        <div class="card" onclick="goDriver('spots')" style="cursor:pointer;">
+          <div class="row"><span class="value">Zone 2 – Brigade Road</span><span class="pill-warning pill">4 free</span></div>
+          <div class="row"><span class="label">0.8 km away · ₹40/hr</span></div>
+        </div>
+        <div class="card"><div class="row"><span class="value">Zone 1 – MG Road</span><span class="pill-success pill">18 free</span></div></div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'spots'){
+    el.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="header">
+        <span class="back" onclick="goDriver('home')">← </span>
+        <div class="title">Zone 2 – Brigade Road</div>
+        <div class="sub">4 of 24 available</div>
+      </div>
+      <div class="body">
+        <div class="card" onclick="goDriver('spotDetail')" style="cursor:pointer;">
+          <div class="row"><span class="value">Spot D1</span><span class="value">₹40/hr</span></div>
+          <div class="row"><span class="label">Open Air · ~2 min walk</span></div>
+        </div>
+        <div class="btn btn-primary" onclick="goDriver('spotDetail')">Continue with Spot D1 →</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'spotDetail'){
+    el.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="header">
+        <span class="back" onclick="goDriver('spots')">← </span>
+        <div class="title">Spot Details</div>
+      </div>
+      <div class="body">
+        <div class="card">
+          <div class="row"><span class="value">Spot D1</span><span class="label">Zone 2 – Brigade Road</span></div>
+          <div class="row"><span class="label">Price/hr</span><span class="value">₹40</span></div>
+          <div class="row"><span class="label">Duration</span><span class="value">2 hours</span></div>
+          <div class="row"><span class="label">Total</span><span class="value">₹80</span></div>
+        </div>
+        <div class="btn btn-primary" onclick="goDriver('payment')">Book This Spot</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'payment'){
+    el.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="header">
+        <span class="back" onclick="goDriver('spotDetail')">← </span>
+        <div class="title">Payment</div>
+      </div>
+      <div class="body">
+        <div class="card">
+          <div class="row"><span class="label">Zone</span><span class="value">Brigade Road</span></div>
+          <div class="row"><span class="label">Spot</span><span class="value">D1</span></div>
+          <div class="row"><span class="label">Total</span><span class="value">₹80</span></div>
+        </div>
+        <div class="card" style="border-color:var(--primary);">UPI — PhonePe, GPay, Paytm ●</div>
+        <div class="btn btn-primary" onclick="startBooking()">Confirm &amp; Pay ₹80</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'confirmed'){
+    el.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="body" style="text-align:center;">
+        <div class="center-icon" style="background:var(--success-bg); color:var(--success-text);">✓</div>
+        <div style="font-weight:700; font-size:16px;">Booking Confirmed!</div>
+        <div style="font-size:12.5px; color:var(--text-muted); margin-bottom:12px;">Your spot is reserved and ready</div>
+        <div class="card" style="text-align:left;">
+          <div class="row"><span class="label">Spot</span><span class="value">D1, Zone 2</span></div>
+          <div class="row"><span class="label">Start</span><span class="value">08:23 AM</span></div>
+        </div>
+        <div class="card" style="text-align:left; background:var(--info-bg); border:none;">
+          <b style="font-size:12.5px;">Reservation Policy <span class="new-tag">NEW</span></b>
+          <div style="font-size:12px; margin-top:6px; color:var(--text);">
+            Your spot is reserved for a 15-minute grace period. If you don't arrive in time, it will be automatically released for other drivers.
+          </div>
+        </div>
+        <div class="btn btn-outline" onclick="goDriver('home')">Book Another Spot</div>
+        <div class="btn btn-primary" onclick="goDriver('myBookings')">View My Bookings</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'myBookings'){
+    const expired = state.spotStatus === 'available';
+    el.innerHTML = `
+      <div class="statusbar"><span>9:41</span><span>SwiftPark</span><span>🔋</span></div>
+      <div class="header"><div class="title">My Bookings</div></div>
+      <div class="body">
+        <div class="card">
+          <div class="row">
+            <span class="value">Zone 2 – Brigade Road</span>
+            ${expired ? '<span class="pill pill-danger">Expired</span>' : '<span class="pill pill-success">Active</span>'}
+          </div>
+          <div class="row"><span class="label">Spot D1 · 2hr · 08:23 AM</span></div>
+          ${!expired ? `
+            <div class="timer">${fmt(state.graceSeconds)}</div>
+            <div class="timer-label">Grace period remaining <span class="new-tag">NEW</span></div>
+            <div class="btn btn-danger-outline" onclick="simulateNoShow()">Simulate No-show (prototype only)</div>
+          ` : `
+            <div class="card" style="background:var(--danger-bg); border:none; margin-top:8px;">
+              <div style="font-size:12.5px; font-weight:700; color:var(--danger-text);">Reservation Released <span class="new-tag">NEW</span></div>
+              <div style="font-size:12px; margin-top:4px;">You didn't arrive within the grace period. Spot D1 was automatically released and is now available to other drivers.</div>
+            </div>
+            <div class="btn btn-primary" onclick="goDriver('home')">Find Parking</div>
+          `}
+        </div>
+      </div>`;
+    return;
+  }
+}
+
+function goDriver(screen){
+  state.driverScreen = screen;
+  renderDriver();
+}
+
+function startBooking(){
+  state.spotStatus = 'reserved';
+  state.graceSeconds = 15*60;
+  goDriver('confirmed');
+  if(state.timerInterval) clearInterval(state.timerInterval);
+}
+
+function simulateNoShow(){
+  state.spotStatus = 'available';
+  if(state.timerInterval) clearInterval(state.timerInterval);
+  renderDriver();
+  renderWarden(); // cross-system: warden view updates the instant this happens
+}
+
+/* ---------------- WARDEN SCREENS ---------------- */
+function renderWarden(){
+  const el = document.getElementById('warden-screen');
+  const s = state.wardenScreen;
+
+  if(s === 'shiftStart'){
+    el.innerHTML = `
+      <div class="statusbar"><span>08:39 am</span><span>WD-042</span></div>
+      <div class="body" style="text-align:center; padding-top:40px;">
+        <div style="font-weight:800; font-size:16px; color:var(--primary);">🅿 SwiftPark Enforcement</div>
+        <div class="center-icon" style="background:var(--primary); color:#fff; width:70px; height:70px; font-size:14px; font-weight:800;">WD-042</div>
+        <div style="font-weight:700; margin-top:6px;">Warden Ravi Kumar</div>
+        <div style="font-size:12.5px; color:var(--primary); margin-bottom:14px;">Zone 3 — Indiranagar</div>
+        <div class="card" style="text-align:left;">
+          <div class="row"><span class="label">Shift</span><span class="value">08:00–16:00</span></div>
+          <div class="row"><span class="label">Zone</span><span class="value">Zone 3, Indiranagar</span></div>
+        </div>
+        <div class="btn btn-primary" onclick="goWarden('activeBookings')">Start Shift</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'activeBookings'){
+    const spotA04Status = state.spotStatus; // shared with driver's Spot D1 for this demo, relabelled A-04 on warden side
+    el.innerHTML = `
+      <div class="statusbar"><span>08:39 am</span><span>WD-042</span></div>
+      <div class="banner banner-offline">● No network detected — actions will sync when online</div>
+      <div class="header" style="padding-bottom:10px;">
+        <div class="sub">ZONE 3 — INDIRANAGAR</div>
+        <div class="title">Active Bookings</div>
+        <div class="sub">4 active · 2 flagged · 8 total</div>
+      </div>
+      <div class="body">
+        <div class="booking-item" onclick="goWarden('spotDetail')" style="cursor:pointer;">
+          <div class="top"><span class="name">A-04 · Ananya Iyer</span>
+            ${spotA04Status==='available'
+              ? '<span class="pill pill-danger">Available <span class="new-tag">AUTO</span></span>'
+              : '<span class="pill pill-success">Active</span>'}
+          </div>
+          <div class="meta">${spotA04Status==='available' ? 'Reservation automatically released' : '10:00 · 1 hr · ₹40'}</div>
+        </div>
+        <div class="booking-item">
+          <div class="top"><span class="name">A-01 · Priya Sharma</span><span class="pill pill-success">Active</span></div>
+          <div class="meta">09:00 · 2 hrs · ₹80</div>
+        </div>
+        <div class="booking-item">
+          <div class="top"><span class="name">A-03 · Deepak Nair</span><span class="pill pill-danger">Flagged</span></div>
+          <div class="meta">08:45 · 3 hrs · ₹120</div>
+        </div>
+        <div class="footer-note">Tap Spot A-04 to see its detail &amp; the auto-release effect after you tap "Simulate No-show" on the Driver App.</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'spotDetail'){
+    el.innerHTML = `
+      <div class="statusbar"><span>08:39 am</span><span>WD-042</span></div>
+      <div class="header">
+        <span class="back" onclick="goWarden('activeBookings')">← SPOT DETAIL</span>
+        <div class="title">Spot A-04</div>
+      </div>
+      <div class="body">
+        <div class="card">
+          <div class="row"><span class="label">Name</span><span class="value">Ananya Iyer</span></div>
+          <div class="row"><span class="label">Vehicle No.</span><span class="value">KA-03-GH-3456</span></div>
+        </div>
+        <div class="card">
+          <div class="row"><span class="label">Booked From</span><span class="value">10:00</span></div>
+          <div class="row"><span class="label">Amount Paid</span><span class="value" style="color:var(--success-text);">₹40 — Paid</span></div>
+        </div>
+        <div class="btn btn-success" onclick="logAction()">✓ Confirm Valid Booking</div>
+        <div class="btn btn-danger-outline">! Flag Unauthorised Vehicle</div>
+      </div>`;
+    return;
+  }
+
+  if(s === 'savedLocal'){
+    // instant, on-tap acknowledgment BEFORE full "Action Logged" screen — the new piece we designed
+    el.innerHTML = `
+      <div class="statusbar"><span>08:40 am</span><span>WD-042</span></div>
+      <div class="body" style="padding-top:60px; text-align:center;">
+        <div class="center-icon" style="background:var(--success-bg); color:var(--success-text);">⚡</div>
+        <div style="font-weight:700;">Saved on device <span class="new-tag">NEW</span></div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">Spot A-04 · 08:40 AM<br>Will sync automatically — safe even if the app closes now.</div>
+      </div>`;
+    setTimeout(()=>{ goWarden('actionLogged'); }, 1400);
+    return;
+  }
+
+  if(s === 'actionLogged'){
+    el.innerHTML = `
+      <div class="body" style="text-align:center; padding-top:20px;">
+        <div class="center-icon" style="background:var(--success-bg); color:var(--success-text);">✓</div>
+        <div style="font-weight:700;">Action Logged</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">This booking has been confirmed as valid.</div>
+        <div class="card" style="text-align:left;">
+          <div class="row"><span class="label">Action</span><span class="value" style="color:var(--success-text);">Booking Confirmed</span></div>
+          <div class="row"><span class="label">Spot</span><span class="value">A-04</span></div>
+          <div class="row"><span class="label">Timestamp</span><span class="value">08:40:07 am</span></div>
+        </div>
+        <div class="card" style="background:var(--warning-bg); border:none; text-align:left;">
+          <b style="font-size:12px; color:var(--warning-text);">Sync Pending</b>
+          <div style="font-size:11.5px; margin-top:3px;">Will update the central system when connectivity is restored.</div>
+        </div>
+        <div class="btn btn-primary" onclick="goWarden('activeBookings')">Back to Zone Overview</div>
+      </div>`;
+    return;
+  }
+}
+
+function goWarden(screen){
+  state.wardenScreen = screen;
+  renderWarden();
+}
+
+function logAction(){
+  goWarden('savedLocal');
+}
+
+/* init */
+renderDriver();
+renderWarden();
+setApp('driver');
+</script>
+</body>
+</html>
